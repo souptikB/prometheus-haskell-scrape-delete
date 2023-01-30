@@ -58,8 +58,9 @@ checkLabelKeys keys r = foldl check r $ map (T.unpack . fst) $ labelPairs keys k
 -- It is not clear that this will always be a valid assumption.
 collectVector :: Label l => l -> IORef.IORef (VectorState l m) -> IO [SampleGroup]
 collectVector keys ioref = do
-    (_, metricMap) <- IORef.readIORef ioref
-    joinSamples <$> concat <$> mapM collectInner (Map.assocs metricMap)
+    (Metric gen, _) <- IORef.readIORef ioref
+    metricMapData <- Atomics.atomicModifyIORefCAS ioref $ \(_, metricMap) -> ((Metric gen,Map.empty),metricMap) 
+    joinSamples <$> concat <$> mapM collectInner (Map.assocs metricMapData)
     where
         collectInner (labels, (_metric, sampleGroups)) =
             map (adjustSamples labels) <$> sampleGroups
