@@ -184,7 +184,9 @@ metricsApp = const respondWithMetrics
 respondWithMetrics :: (Wai.Response -> IO Wai.ResponseReceived)
                    -> IO Wai.ResponseReceived
 respondWithMetrics respond = do
+    putStrLn "Prometheus Metric Scrape Started" 
     metrics <- Prom.exportMetricsAsText
-    respond $ Wai.responseLBS HTTP.status200 headers metrics
+    putStrLn $ "Prometheus Metric Scraped" ++ (show $ metrics)
+    respond $ Wai.responseLBS HTTP.status200 headers metrics    
     where
         headers = [(HTTP.hContentType, "text/plain; version=0.0.4")]
